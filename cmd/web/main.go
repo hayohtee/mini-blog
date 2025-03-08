@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 )
 
@@ -18,7 +20,7 @@ func main() {
 
 	// Load .env file.
 	if err := godotenv.Load(); err != nil {
-		logger.Error("unable to load .env file", slog.String("message", err.Error()))
+		logger.Error(fmt.Sprintf("unable to load .env file: %s", err.Error()))
 		os.Exit(1)
 	}
 
@@ -31,7 +33,7 @@ func main() {
 	logger.Info("opening database connection")
 	db, err := openDB(*dsn)
 	if err != nil {
-		logger.Error("error opening database connection", slog.String("message", err.Error()))
+		logger.Error(fmt.Sprintf("error opening database connection: %s", err.Error()))
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -48,7 +50,7 @@ func main() {
 		Handler:      app.routes(),
 	}
 
-	slog.Info("starting server", slog.String("addr", srv.Addr))
+	logger.Info("starting server", slog.String("addr", srv.Addr))
 	if err := srv.ListenAndServe(); err != nil {
 		logger.Error("error starting up the server", slog.String("message", err.Error()))
 		os.Exit(1)
